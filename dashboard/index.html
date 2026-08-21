@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>NOC Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<div class="switch">
+
+<div class="dashboard-header">
+
+    <div class="header-left">
+
+        <div class="header-title">
+
+            <span id="device-status-dot" class="status-dot"></span>
+
+            <span id="header-hostname">
+                SWITCH
+            </span>
+
+        </div>
+
+        <div id="header-model" class="header-model">
+            MODEL
+        </div>
+
+    </div>
+
+    <div class="header-right">
+
+        <div class="device-power-item">
+
+            <span id="header-psu1" class="power-dot"></span>
+
+            <span>PWR1</span>
+
+        </div>
+
+        <div class="device-power-item">
+
+            <span id="header-psu2" class="power-dot"></span>
+
+            <span>PWR2</span>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="topbar">
+
+    <div class="info-card">
+
+        <div class="info-layout">
+
+            <!-- ===================================== -->
+            <!-- Device Information                    -->
+            <!-- ===================================== -->
+
+            <div class="device-box">
+
+                <div id="device-ip" class="device-ip">
+                    IP
+                </div>
+
+                <hr class="device-separator">
+
+                <div class="device-software">
+
+                    <div class="device-row" id="device-firmware-row">
+                        <span>Firmware</span>
+                        <span id="device-firmware">--</span>
+                    </div>
+
+                    <div class="device-row" id="device-bootrom-row">
+                        <span>Bootrom</span>
+                        <span id="device-bootrom">--</span>
+                    </div>
+
+                    <div class="device-row" id="device-hardware-row">
+                        <span>Hardware</span>
+                        <span id="device-hardware">--</span>
+                    </div>
+
+                    <div class="device-row" id="device-logic-row">
+                        <span>Logic</span>
+                        <span id="device-logic">--</span>
+                    </div>
+
+                </div>
+
+                <hr class="device-separator">
+
+
+                <div class="device-health">
+
+                    <div class="health-column">
+
+                        <div class="health-title">
+                            Uptime
+                        </div>
+
+                        <div id="device-uptime" class="health-value">
+                            --
+                        </div>
+
+                    </div>
+
+                    <div class="health-column">
+
+                        <div class="health-title">
+                            Last update
+                        </div>
+
+                        <div id="device-lastpoll" class="health-value">
+                            --
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr class="device-separator">
+
+                <div class="device-grid">
+
+                    <div class="device-row">
+                        <span>FE Ports</span>
+                        <span id="device-fe">0</span>
+                    </div>
+
+                    <div class="device-row">
+                        <span>LLDP Neighbors</span>
+                        <span id="device-lldp">0</span>
+                    </div>
+
+                    <div class="device-row">
+                        <span>GE Ports</span>
+                        <span id="device-gx">0</span>
+                    </div>
+
+                    <div class="device-row">
+                        <span>VLANs</span>
+                        <span id="device-vlan">0</span>
+                    </div>
+
+                    <div class="device-row">
+                        <span>Ports UP</span>
+                        <span id="device-up">0</span>
+                    </div>
+
+                    <div class="device-row">
+                        <span>Ports DOWN</span>
+                        <span id="device-down">0</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ===================================== -->
+            <!-- Link Partners                         -->
+            <!-- ===================================== -->
+
+            <div class="partners-panel">
+
+                <div class="device-box partners-box">
+
+                    <div class="device-title">
+                        CONNECTED DEVICES
+                    </div>
+
+                    <div id="neighbors-list">
+                        loading...
+                    </div>
+
+                </div>
+
+                <div class="network-box">
+
+                    <div class="device-title">
+                        NETWORK MAP
+                    </div>
+
+                    <div id="network-map">
+
+                        <div id="network-map">
+
+                            <svg id="network-svg"
+                                viewBox="0 0 1200 260"
+                                preserveAspectRatio="xMidYMid meet">
+
+                                <!-- ===================================== -->
+                                <!-- LINKS                                 -->
+                                <!-- ===================================== -->
+
+                                <g class="network-links">
+
+                                    <!-- Верхняя магистраль -->
+
+                                    <line x1="80"  y1="55" x2="200" y2="55" />
+                                    <line x1="200" y1="55" x2="320" y2="55" />
+                                    <line x1="320" y1="55" x2="440" y2="55" />
+                                    <line x1="440" y1="55" x2="560" y2="55" />
+
+                                    <line x1="560" y1="55" x2="700" y2="55" />
+                                    <line x1="700" y1="55" x2="820" y2="55" />
+                                    <line x1="820" y1="55" x2="940" y2="55" />
+
+
+                                    <!-- Нижняя магистраль -->
+
+                                    <line x1="80"  y1="155" x2="200" y2="155" />
+                                    <line x1="200" y1="155" x2="320" y2="155" />
+                                    <line x1="320" y1="155" x2="440" y2="155" />
+                                    <line x1="440" y1="155" x2="560" y2="155" />
+                                    <line x1="560" y1="155" x2="680" y2="155" />
+                                    <line x1="680" y1="155" x2="800" y2="155" />
+                                    <line x1="800" y1="155" x2="920" y2="155" />
+                                    <line x1="920" y1="155" x2="1020" y2="155" />
+                                    <line x1="1020" y1="155" x2="1120" y2="155" />
+
+
+                                    <!-- Перемычки -->
+
+                                    <line x1="80"  y1="55" x2="80"  y2="155" />
+                                    <line x1="440" y1="55" x2="440" y2="155" />
+                                    <line x1="560" y1="55" x2="680" y2="155" />
+                                    <line x1="940" y1="55" x2="1120" y2="155" />
+
+
+                                    <!-- Тупиковые ответвления -->
+
+                                    <line x1="440" y1="155" x2="380" y2="225" />
+                                    <line x1="560" y1="155" x2="560" y2="225" />
+                                    <line x1="800" y1="155" x2="860" y2="225" />
+
+                                </g>
+
+
+                                <!-- ===================================== -->
+                                <!-- NODES                                 -->
+                                <!-- ===================================== -->
+
+                                <g class="network-nodes">
+
+                                    <!-- Верхняя линия -->
+
+                                    <g class="network-node unknown" transform="translate(80 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw38</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(200 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw91</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(320 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw134</text>
+                                    </g>
+
+                                    <g class="network-node active" transform="translate(440 55)">
+                                        <circle r="9"/>
+                                        <text x="14" y="5">sw186</text>
+                                    </g>
+
+                                    <g class="network-node online" transform="translate(560 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw277</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(700 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw333</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(820 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw391</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(940 55)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw411</text>
+                                    </g>
+
+
+                                    <!-- Нижняя линия -->
+
+                                    <g class="network-node unknown" transform="translate(80 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw0</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(200 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw8</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(320 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw62</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(440 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw118</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(560 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw161</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(680 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw209</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(800 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw253</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(920 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw305</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(1020 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">sw362</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(1070 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="-12">sw409</text>
+                                    </g>
+
+                                    <g class="network-node unknown" transform="translate(1120 155)">
+                                        <circle r="7"/>
+                                        <text x="12" y="18">sw412</text>
+                                    </g>
+
+
+                                    <!-- Ответвления -->
+
+                                    <g class="network-node branch" transform="translate(380 225)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">Kirillov</text>
+                                    </g>
+
+                                    <g class="network-node branch" transform="translate(560 225)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">Lyp Bor</text>
+                                    </g>
+
+                                    <g class="network-node branch" transform="translate(860 225)">
+                                        <circle r="7"/>
+                                        <text x="12" y="5">Vytegra</text>
+                                    </g>
+
+                                </g>
+
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Старые панели пока оставляем скрытыми.
+     Они нужны JavaScript, позже полностью удалим. -->
+
+<div class="top-card hidden">
+
+    <div class="top-title">
+        UPTIME
+    </div>
+
+    <div id="uptime" class="top-value">
+        --
+    </div>
+
+    <div id="last-update" class="last-update">
+        Last update: —
+    </div>
+
+</div>
+
+<div class="top-card hidden">
+
+    <div class="top-title">
+        STATUS
+    </div>
+
+    <div id="connection-status" class="connection-status">
+
+        <span id="status-icon"></span>
+
+        <span id="status-text">
+            Online
+        </span>
+
+    </div>
+
+</div>
+
+<div class="top-card hidden">
+
+    <div class="top-title">
+        POWER
+    </div>
+
+    <div id="power-status" class="power-status">
+
+        <div class="power-line">
+
+            <span id="psu1-dot" class="power-dot"></span>
+
+            <span>PWR1</span>
+
+        </div>
+
+        <div class="power-line">
+
+            <span id="psu2-dot" class="power-dot"></span>
+
+            <span>PWR2</span>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="ports-container"></div>
+
+<div id="summary">
+
+    <div class="summary-card">
+
+        <div class="summary-title">
+            TOTAL
+        </div>
+
+        <div id="total-count" class="summary-value">
+            0
+        </div>
+
+    </div>
+
+    <div class="summary-card">
+
+        <div class="summary-title">
+            UP
+        </div>
+
+        <div id="up-count" class="summary-value green">
+            0
+        </div>
+
+    </div>
+
+    <div class="summary-card">
+
+        <div class="summary-title">
+            DOWN
+        </div>
+
+        <div id="down-count" class="summary-value gray">
+            0
+        </div>
+
+    </div>
+
+    <div class="summary-card">
+
+        <div class="summary-title">
+            ERROR
+        </div>
+
+        <div id="error-count" class="summary-value red">
+            0
+        </div>
+
+    </div>
+
+</div>
+      
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
