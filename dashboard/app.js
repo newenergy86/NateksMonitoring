@@ -7,6 +7,7 @@ let HOST_ID = null;
 let HOST_IP = "";
 
 let vlanBitmap = {};
+let legacyMembership = {};
 let lastVlanUpdate = 0; 
 let vlanBitmapLoaded = false;
 let loading = false;
@@ -1439,7 +1440,40 @@ function parseVlanBitmap(raw) {
 }
 
 function getTrunkVlansForPort(portIndex) {
-    portIndex = Number(portIndex) - 1000000;
+
+    const ifindex = Number(portIndex);
+
+    // =================================================
+    // LEGACY
+    // У старых коммутаторов IFINDEX совпадает с номером порта:
+    // FE-1 -> 1, FE-2 -> 2, ..., GX-7 -> 7
+    // =================================================
+
+    const legacyPort =
+        window.legacyMembership?.[ifindex] ||
+        window.legacyMembership?.[ifindex - 1000000];
+
+    if (legacyPort) {
+
+        return Object.entries(legacyPort)
+            .filter(
+                ([vlanId, membership]) =>
+                    membership === "Tagged"
+            )
+            .map(
+                ([vlanId]) => Number(vlanId)
+            )
+            .sort(
+                (a, b) => a - b
+            );
+    }
+
+    // =================================================
+    // NEW
+    // Существующая логика через VLAN bitmap
+    // =================================================
+
+    const port = ifindex - 1000000;
 
     const vlans = [];
 
@@ -1447,11 +1481,11 @@ function getTrunkVlansForPort(portIndex) {
 
         const bitmap = vlanBitmap[vlanId];
 
-        if (bitmap.includes(Number(portIndex))) {
+        if (bitmap.includes(port)) {
             vlans.push(Number(vlanId));
         }
     }
-    
+
     return vlans;
 }
 
@@ -1459,30 +1493,113 @@ function vlanDisplay(port) {
 
     const mode = parseInt(port.vlanmode);
 
-    if (mode === 2) {
+    // =================================================
+    // LEGACY VLAN MEMBERSHIP
+    // =================================================
 
-        const trunkVlans = getTrunkVlansForPort(port.ifindex);
+    const ifindex = Number(port.ifindex);
 
-        if (!trunkVlans.length) {
-            return `<span class="badge trunk">TRUNK</span>`;
+    const legacyPort =
+        window.legacyMembership?.[ifindex] ||
+        window.legacyMembership?.[ifindex - 1000000];
+
+    if (legacyPort) {
+
+        // -------------------------------------------------
+        // Если есть хотя бы один Tagged VLAN —
+        // это trunk-порт.
+        // -------------------------------------------------
+
+        const taggedVlans =
+            Object.entries(legacyPort)
+                .filter(
+                    ([vlanId, membership]) =>
+                        membership === "Tagged"
+                )
+                .map(
+                    ([vlanId]) => Number(vlanId)
+                )
+                .sort(
+                    (a, b) => a - b
+                );
+
+        if (taggedVlans.length) {
+
+            return `
+                <span class="badge trunk">
+                    TRUNK
+                </span>
+            `;
         }
 
-        const names = trunkVlans
-            .map(vlanName)
-            .join(", ");
+        // -------------------------------------------------
+        // Если Tagged нет — ищем Untagged VLAN.
+        // -------------------------------------------------
+
+        const untaggedVlans =
+            Object.entries(legacyPort)
+                .filter(
+                    ([vlanId, membership]) =>
+                        membership === "Untagged"
+                )
+                .map(
+                    ([vlanId]) => Number(vlanId)
+                )
+                .sort(
+                    (a, b) => a - b
+                );
+
+        if (untaggedVlans.length) {
+
+            return `
+                <span class="badge vlan">
+                    VLAN ${untaggedVlans.join(", ")}
+                </span>
+            `;
+        }
+    }
+
+    // =================================================
+    // EXISTING NEW-SWITCH LOGIC
+    // =================================================
+
+    if (mode === 2) {
+
+        const trunkVlans =
+            getTrunkVlansForPort(port.ifindex);
+
+        if (!trunkVlans.length) {
+
+            return `
+                <span class="badge trunk">
+                    TRUNK
+                </span>
+            `;
+        }
 
         return `
-            <span class="badge trunk">TRUNK </span>
+            <span class="badge trunk">
+                TRUNK
+            </span>
         `;
     }
 
     const vlan = parseInt(port.vlan);
 
     if (!Number.isFinite(vlan)) {
-        return `<span class="badge vlan">—</span>`;
+
+        return `
+            <span class="badge vlan">
+                —
+            </span>
+        `;
     }
 
-    return `<span class="badge vlan">${vlanName(vlan)}</span>`;
+    return `
+        <span class="badge vlan">
+            VLAN ${vlan}
+        </span>
+    `;
 }
 
 function vlanClass(vlan) {
@@ -2165,7 +2282,20 @@ async function loadPorts() {
             hostids: HOST_ID,
             output: ["name", "key_", "lastvalue", "lastclock"],   // lastclock для времени опроса
             search: {
-                key_: ["net.if.", "sysUpTime", "vlan.bitmap.table", "PSU", "device.model", "device.firmware", "device.bootrom", "device.hardware", "device.logic", "net.device.name", "lldp.table"]
+                key_: [
+                    "net.if.",
+                    "legacy_adapter.py[--membership,",
+                    "sysUpTime",
+                    "vlan.bitmap.table",
+                    "PSU",
+                    "device.model",
+                    "device.firmware",
+                    "device.bootrom",
+                    "device.hardware",
+                    "device.logic",
+                    "net.device.name",
+                    "lldp.table"
+                ]
             },
             searchByAny: true,
             limit: 3000
@@ -2178,6 +2308,48 @@ async function loadPorts() {
         for (const item of items) {
             itemMap[item.key_] = item;
         }
+        // =================================================
+        // LEGACY VLAN MEMBERSHIP
+        // =================================================
+
+        legacyMembership = {};
+
+        for (const item of items) {
+
+            const key = item.key_ || "";
+
+            if (!key.startsWith("legacy_adapter.py[--membership,")) {
+                continue;
+            }
+
+            const match = key.match(
+                /^legacy_adapter\.py\[--membership,(\d+),(\d+),(.+)\]$/
+            );
+
+            if (!match) {
+                continue;
+            }
+
+            const vlanId = Number(match[1]);
+            const port = Number(match[2]);
+            const membership = String(item.lastvalue || "").trim();
+
+            if (!Number.isFinite(vlanId) || !Number.isFinite(port)) {
+                continue;
+            }
+
+            if (!membership) {
+                continue;
+            }
+
+            if (!legacyMembership[port]) {
+                legacyMembership[port] = {};
+            }
+
+            legacyMembership[port][vlanId] = membership;
+        }
+
+        window.legacyMembership = legacyMembership;
         const lldpItem = itemMap["lldp.table"];
         
         // =================================================
