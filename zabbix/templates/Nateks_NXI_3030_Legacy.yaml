@@ -1,0 +1,300 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 8aaae520dd40458d83556a4905208fc2
+      name: 'Оборудование газопроводоотвода на Вытегру'
+  templates:
+    - uuid: 9d6979b13c104d7ebeea92cc2be1e2d4
+      template: Nateks_NXI_3030_Legacy
+      name: 'Шаблон для Nateks NXI 3030 Legacy'
+      description: Коммутатор
+      groups:
+        - name: 'Оборудование газопроводоотвода на Вытегру'
+      items:
+        - uuid: 336f2cbc12cc44fea10b0ff987b2a955
+          name: 'Bootrom Version'
+          type: DEPENDENT
+          key: device.bootrom
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'Bootrom Version\s+([^\s]+)'
+                - \1
+          master_item:
+            key: device.sysdescr
+        - uuid: bb52503e5a9843a1894bfe902e08def4
+          name: 'Firmware Version'
+          type: DEPENDENT
+          key: device.firmware
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'Firmware Version\s+([^\s]+)'
+                - \1
+          master_item:
+            key: device.sysdescr
+        - uuid: ed6a13466c9d48abb384cc7b2dc244df
+          name: 'Device Model'
+          type: DEPENDENT
+          key: device.model
+          delay: '0'
+          value_type: TEXT
+          trends: '0'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - '.*?(NetXpert-NXI-\d+).*'
+                - \1
+          master_item:
+            key: device.sysdescr
+        - uuid: 298758b0982245bfa29e03dd9ec298b8
+          name: 'System Description'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: device.sysdescr
+          delay: 5m
+          history: 1d
+          value_type: TEXT
+          trends: '0'
+        - uuid: aeeab524bf774a0695cfccaf55220827
+          name: 'LLDP SysName Table'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#TEST},1.0.8802.1.1.2.1.4.1.1.9]'
+          key: lldp.sysname.table
+          value_type: TEXT
+          trends: '0'
+        - uuid: 71d0933281ee407abb8df81bca6bc7f2
+          name: 'LLDP Table'
+          type: SNMP_AGENT
+          snmp_oid: 'walk[1.3.6.1.4.1.4249.1.201.15.1.1.1.1.1, 1.3.6.1.4.1.4249.1.201.15.1.1.1.1.3, 1.3.6.1.4.1.4249.1.201.15.1.1.1.1.5]'
+          key: lldp.table
+          value_type: TEXT
+          trends: '0'
+        - uuid: 165b467b40114c569a96c68b7ea4e2ec
+          name: 'Device Name'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.5.0
+          key: net.device.name
+          delay: 5m
+          value_type: TEXT
+          trends: '0'
+        - uuid: b43369a56b2c49bf8391f612c3deaa89
+          name: 'PSU1 Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.4249.1.201.9.1.18.0
+          key: PSU1_Status
+          description: 'Основное питание: 1 = подключено, 2 = отключено'
+        - uuid: bb8b699aecd24613a132f36692c4677d
+          name: 'PSU2 Status'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.4.1.4249.1.201.9.1.19.0
+          key: PSU2_Status
+          description: 'Резервное питание: 1 = подключено, 2 = отключено'
+        - uuid: 6260160c5d034dd89ab99d27cfb8242a
+          name: 'SNMP sysDescr'
+          type: SNMP_AGENT
+          snmp_oid: 1.3.6.1.2.1.1.1.0
+          key: sysDescr
+          value_type: TEXT
+          trends: '0'
+        - uuid: d27a88a426d24d7e9c8c79c375586895
+          name: UpTime
+          type: SNMP_AGENT
+          snmp_oid: .1.3.6.1.2.1.1.3.0
+          key: sysUpTime
+          delay: 45s
+          units: uptime
+        - uuid: afe9af4e86f04b1384ece7b745ed71e2
+          name: 'VLAN Bitmap Table'
+          type: SNMP_AGENT
+          snmp_oid: 'walk[1.3.6.1.2.1.17.7.1.4.2.1.4]'
+          key: vlan.bitmap.table
+          value_type: TEXT
+          trends: '0'
+      discovery_rules:
+        - uuid: 14549a26894a432fb624d45a9ef98683
+          name: 'Bridge Ports Discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#BRIDGEPORT},1.3.6.1.2.1.17.1.4.1.1,{#IFINDEX},1.3.6.1.2.1.17.1.4.1.2]'
+          key: bridge.port.discovery
+          delay: 1h
+          item_prototypes:
+            - uuid: 58e181e7804f4feb9bd6fd33a896207a
+              name: 'Interface VLAN Mode {#IFINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.4.1.4249.1.201.4.1.1.1.4.1.{#BRIDGEPORT}'
+              key: 'net.if.vlanmode[{#IFINDEX}]'
+            - uuid: 115afb59a530496bae3bf00e14f4d707
+              name: 'Interface VLAN {#IFINDEX}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.17.7.1.4.5.1.1.{#BRIDGEPORT}'
+              key: 'net.if.vlan[{#IFINDEX}]'
+        - uuid: 834a4c3941bd4d31b8a00af57e6c4779
+          name: 'Legacy VLAN discovery'
+          type: EXTERNAL
+          key: 'legacy_adapter.py[--discovery,{HOST.CONN}]'
+          delay: 5m
+          item_prototypes:
+            - uuid: 5f7fbf632b064f12a9dc9fe249c07ab4
+              name: 'VLAN {#VLANID} Bitmap'
+              type: EXTERNAL
+              key: 'legacy_adapter.py[--vlan,{#VLANID},{HOST.CONN}]'
+              delay: 5m
+              history: 7d
+              value_type: TEXT
+              trends: '0'
+        - uuid: e43dc9d62ff04afb96f0d873d667d162
+          name: 'LLDP discovery'
+          type: SNMP_AGENT
+          snmp_oid: 1.0.8802.1.1.2.1.3.7.1.3
+          key: LLDP.discovery
+          delay: 1h
+        - uuid: 9dbe0d06554449b98784bb2a1367cb6f
+          name: 'Обнаружение сетевых интерфейсов'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#IFINDEX},.1.3.6.1.2.1.2.2.1.1,{#IFNAME},.1.3.6.1.2.1.2.2.1.2]'
+          key: net.if.discovery
+          delay: 1h
+          filter:
+            conditions:
+              - macro: '{#IFNAME}'
+                value: ^(FE-|GX-)
+                formulaid: A
+          item_prototypes:
+            - uuid: 827f3eadd9ea4970b4a1c8e72d0e4783
+              name: 'Interface {#IFNAME}: Activity'
+              type: CALCULATED
+              key: 'net.if.activity[{#IFINDEX}]'
+              delay: 10s
+              history: 1d
+              trends: 10d
+              params: 'max(/{HOST.HOST}/net.if.in[{#IFINDEX}],10s) > 10000 or max(/{HOST.HOST}/net.if.out[{#IFINDEX}],10s) > 10000'
+              tags:
+                - tag: activity
+                  value: '1'
+            - uuid: 28777ffbf6424052943de7cb122e7d8e
+              name: 'Interface {#IFNAME}: Duplex'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.10.7.2.1.19.{#IFINDEX}'
+              key: 'net.if.duplex[{#IFINDEX}]'
+              value_type: TEXT
+              trends: '0'
+            - uuid: 34f95b4c12a742d0b5223cc6b6d21db8
+              name: 'Interface {#IFNAME}: In errors'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.14.{#IFINDEX}'
+              key: 'net.if.in.errors[{#IFINDEX}]'
+              preprocessing:
+                - type: SIMPLE_CHANGE
+                  parameters:
+                    - ''
+            - uuid: f60ff60a6b264aada5c65f207e0bc596
+              name: 'Входящий трафик {#IFNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.10.{#IFINDEX}'
+              key: 'net.if.in[{#IFINDEX}]'
+              delay: 10s
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+              trigger_prototypes:
+                - uuid: b47260e5f3f84241893e9ce7fb27145d
+                  expression: 'avg(/Nateks_NXI_3030_Legacy/net.if.in[{#IFINDEX}],5m)>70000000'
+                  name: '{#IFNAME} Перегруз'
+                  priority: HIGH
+            - uuid: a77c374867c74d1aa7db4f17adc77d21
+              name: 'Имя интерфейса {#IFNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.2.{#IFINDEX}'
+              key: 'net.if.name[{#IFINDEX}]'
+              value_type: TEXT
+              trends: '0'
+            - uuid: 28ed7ce380814fff92e0bccde88b20ba
+              name: 'Interface {#IFNAME}: Out errors'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.20.{#IFINDEX}'
+              key: 'net.if.out.errors[{#IFINDEX}]'
+              preprocessing:
+                - type: SIMPLE_CHANGE
+                  parameters:
+                    - ''
+            - uuid: 48b211d2fcd945b181907c973b917f47
+              name: 'Исходящий трафик {#IFNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.16.{#IFINDEX}'
+              key: 'net.if.out[{#IFINDEX}]'
+              delay: 10s
+              units: bps
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+                  parameters:
+                    - ''
+                - type: MULTIPLIER
+                  parameters:
+                    - '8'
+            - uuid: 934adccaec23487d867de95736d87ae7
+              name: 'Interface {#IFNAME}: Speed'
+              type: SNMP_AGENT
+              snmp_oid: '1.3.6.1.2.1.2.2.1.5.{#IFINDEX}'
+              key: 'net.if.speed[{#IFINDEX}]'
+              delay: 30s
+              units: M
+              preprocessing:
+                - type: MULTIPLIER
+                  parameters:
+                    - '1.0E-6'
+              tags:
+                - tag: Speed
+                  value: '1'
+            - uuid: 3cb2ed3930f94e2289271b06b5dd8982
+              name: 'Статус интерфейса {#IFNAME}'
+              type: SNMP_AGENT
+              snmp_oid: '.1.3.6.1.2.1.2.2.1.8.{#IFINDEX}'
+              key: 'net.if.status[{#IFINDEX}]'
+              trigger_prototypes:
+                - uuid: 93e4eb2ba1bc4ef58d7aa814e67933c5
+                  expression: 'last(/Nateks_NXI_3030_Legacy/net.if.status[{#IFINDEX}])=2'
+                  name: 'Порт {#IFNAME} DOWN'
+                  priority: WARNING
+          trigger_prototypes:
+            - uuid: ade0554813f84239b86eae49d4f1ed9e
+              expression: |
+                max(/Nateks_NXI_3030_Legacy/net.if.in[{#IFINDEX}],40s)>5000
+                or
+                max(/Nateks_NXI_3030_Legacy/net.if.out[{#IFINDEX}],40s)>5000
+              name: '{#IFNAME} ACTIVITY'
+            - uuid: 98e874e4bf4f417a9fed445d92a12f63
+              expression: |
+                last(/Nateks_NXI_3030_Legacy/net.if.in.errors[{#IFINDEX}])>0
+                or
+                last(/Nateks_NXI_3030_Legacy/net.if.out.errors[{#IFINDEX}])>0
+              name: 'Ошибки на {#IFNAME}'
+          graph_prototypes:
+            - uuid: b96fc24e6632490b83d3196f488f65c7
+              name: 'Трафик {#IFNAME}'
+              graph_items:
+                - color: 199C0D
+                  calc_fnc: ALL
+                  item:
+                    host: Nateks_NXI_3030_Legacy
+                    key: 'net.if.in[{#IFINDEX}]'
+                - sortorder: '1'
+                  color: F63100
+                  calc_fnc: ALL
+                  item:
+                    host: Nateks_NXI_3030_Legacy
+                    key: 'net.if.out[{#IFINDEX}]'
+      macros:
+        - macro: '{$SNMP_COMMUNITY}'
+          value: private
